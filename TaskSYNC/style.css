@@ -1,0 +1,381 @@
+/* style.css */
+
+/* Light weight version */
+.archivo-light {
+  font-family: "Archivo", sans-serif;
+  font-optical-sizing: auto;
+  font-weight: 300;   /* pick from 100–900 */
+  font-style: normal;
+  font-variation-settings: "wdth" 100;
+}
+
+/* Bold headings */
+.archivo-bold {
+  font-family: "Archivo", sans-serif;
+  font-optical-sizing: auto;
+  font-weight: 700;
+  font-style: normal;
+  font-variation-settings: "wdth" 100;
+}
+
+
+body { 
+    font-family: 'Archivo', sans-serif;
+    margin:0; 
+    color:#111827; }
+
+header { 
+    background: #f1dbff; 
+    color:rgb(0, 0, 0); 
+    padding:14px 18px; 
+    text-align:center; }
+
+.container { 
+    max-width:1100px; 
+    margin:18px auto; 
+    padding:16px; }
+
+.card-grid { 
+    display:grid; 
+    grid-template-columns:repeat(auto-fit, minmax(300px,1fr)); 
+    gap:16px; }
+
+.card { background:white;
+     padding:16px; 
+     border-radius:10px;
+     box-shadow:0 6px 18px 
+     rgba(15,23,42,0.06); }
+
+.btn { background:#2563eb; 
+    color:white; 
+    border:0; 
+    padding:8px 12px; 
+    border-radius:8px; 
+    text-decoration:none; 
+    cursor:pointer; }
+
+.group-list { 
+    display:grid; 
+    grid-template-columns:repeat(auto-fit, minmax(220px,1fr)); 
+    gap:12px; 
+    margin-top:10px; }
+
+.group-card { padding:12px; 
+    background:#fff; 
+    border-radius:8px; 
+    border:1px solid #eef2f7; 
+    text-align:center; }
+
+input { padding:8px 10px; 
+    border-radius:8px; 
+    border:1px solid #e6e6e6; width:100%; }
+
+.pill { background:#eef2ff; 
+    padding:4px 8px; 
+    border:1px solid #dbeafe; 
+    font-size:12px; }
+.back-link { display:inline-block; 
+    margin-bottom:12px; 
+    text-decoration:none; 
+    color:#fff; 
+    background:#6b7280; 
+    padding:8px 12px; 
+   }
+
+.muted { color:#6b7280; 
+    font-size:13px; }
+
+
+
+.context-menu {
+  position: absolute;
+  z-index: 9999;
+  background: #fff;
+  border: 1px solid #ccc;
+  box-shadow: 2px 2px 6px rgba(0,0,0,0.2);
+  padding: 5px 0;
+  display: none;
+  min-width: 150px;
+}
+.context-menu ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.context-menu li {
+  padding: 8px 12px;
+  cursor: pointer;
+}
+.context-menu li:hover {
+  background: #f0f0f0;
+}
+
+.details-container {
+    display: none; /* Hide by default */
+    position: absolute; /* Position relative to the trigger */
+    background-color: #f9f9f9;
+    border: 1px solid #ccc;
+    padding: 10px;
+    z-index: 10; /* Ensure it appears above other content */
+    /* Add more styling as needed */
+}
+
+.hover-trigger {
+    position: relative; /* Essential for absolute positioning of details */
+    /* Add styling for the trigger element */
+}
+
+.task-deadline {
+  display: block;
+  font-size: 12px;
+  color: #ef4444; /* red if exists */
+  margin-top: 4px;
+}
+.task-deadline.muted {
+  color: #9ca3af; /* grey if missing */
+}
+/* Grid for Members, Chat, Tasks */
+.task-group {
+  display: grid;
+  grid-template-columns: 0.8fr 1.2fr 1fr; /* adjust proportions */
+  gap: 20px;
+}
+
+/* Each section styled as a card */
+.task-group .card {
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  padding: 16px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+}
+
+/* Section headings */
+.task-group .card h3 {
+  font-size: 16px;
+  font-weight: 600;
+  margin-bottom: 10px;
+}
+
+.deadline-tooltip {
+  display: none;
+  position: absolute;
+  background: #111827;
+  color: #f9fafb;
+  padding: 6px 10px;
+  font-size: 12px;
+  z-index: 1000;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+  white-space: nowrap;
+}
+.deadline-panel {
+  position: absolute;
+  top: 100%; /* directly under the button */
+  right: 0;
+  width: 280px;
+  background: #fff;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  padding: 12px;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+  z-index: 100;
+}
+
+.deadline-panel.hidden {
+  display: none;
+}
+
+.deadline-panel h3 {
+  margin: 0 0 8px 0;
+  font-size: 15px;
+  border-bottom: 1px solid #eee;
+  padding-bottom: 4px;
+}
+
+.deadline-box {
+  position: absolute;
+  top: 40px; /* just below the button */
+  right: 0;
+  width: 280px;
+  background: #fff;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+  padding: 12px;
+  z-index: 1000;
+}
+
+.hidden {
+  display: none;
+}
+
+.menu-btn {
+  background: transparent;
+  border: none;
+  font-size: 18px;
+  cursor: pointer;
+  position: absolute;
+  top: 10px;
+  right: 10px;
+}
+
+.menu-dropdown {
+  position: absolute;
+  top: 35px;
+  right: 10px;
+  background: #fff;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+  z-index: 100;
+  min-width: 140px;
+}
+
+.menu-dropdown.hidden {
+  display: none;
+}
+
+.dropdown-item {
+  display: block;
+  width: 100%;
+  text-align: left;
+  padding: 8px 12px;
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+
+.dropdown-item:hover {
+  background: #f3f4f6;
+}
+
+
+
+.sidebar {
+  position: static;       /* no floating, just flows with the page */
+  width: 220px;
+  background-color: #f0d9ff;
+  border-radius: 0;       /* remove rounded corners */
+  box-shadow: none;       /* remove shadow */
+  padding: 20px;
+}
+
+.sidebar h2 {
+  color: #ff4d6d;
+  font-family: cursive;
+  margin-bottom: 30px;
+}
+
+.sidebar ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.sidebar ul li {
+  margin: 10px 0;
+  padding: 5px;
+  text-align: left;
+  cursor: default;        /* no pointer hand */
+  background: none;       /* no hover background */
+  transform: none;        /* no hover movement */
+}
+
+
+/* Page wrapper */
+.page {
+  display: flex;
+  min-height: 100vh;
+  background: #f9fafb;
+  transition: all 0.3s ease;
+}
+
+/* Sidebar widget */
+.sidebar {
+  width: 220px;
+  background-color: #f0d9ff;
+  padding: 20px;
+  border-right: 1px solid #e5e7eb;
+  transition: transform 0.3s ease;
+}
+
+/* Hidden state */
+.sidebar.hidden {
+  transform: translateX(-100%);
+}
+
+/* Main content expands when sidebar is hidden */
+.main {
+  flex: 1;
+  padding: 24px;
+  transition: margin-left 0.3s ease;
+}
+
+/* Toggle button */
+/* Floating toggle button */
+.toggle-btn {
+  position: fixed;
+  bottom: 20px;
+  left: 20px;
+  background: #3b82f6;
+  color: #fff;
+  border: none;
+  padding: 12px 16px;
+  border-radius: 50%;
+  font-size: 20px;
+  cursor: pointer;
+  z-index: 1000;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+  transition: background 0.2s ease;
+}
+
+.toggle-btn:hover {
+  background: #2563eb;
+}
+
+
+.modal {
+  display: none;
+  position: fixed;
+  z-index: 1000;
+  left: 0; top: 0;
+  width: 100%; height: 100%;
+  background-color: rgba(0, 0, 0, 0.4);
+  justify-content: center;
+  align-items: center;
+}
+
+.modal-content {
+  background: #fff;
+  padding: 20px;
+  border-radius: 10px;
+  width: 350px;
+  max-width: 90%;
+  box-shadow: 0 0 10px rgba(0,0,0,0.3);
+}
+
+.modal-content h3 {
+  margin-top: 0;
+}
+
+.close {
+  float: right;
+  cursor: pointer;
+  font-size: 22px;
+}
+
+.status.ongoing   { background: #dbeafe; color: #1d4ed8; }  /* Blue */
+.status.delayed   { background: #fef9c3; color: #ca8a04; }  /* Yellow */
+.status.completed { background: #d1fae5; color: #047857; }  /* Green */
+.status.dropped   { background: #e5e7eb; color: #111827; }  /* Black */
+
+/* Matching dots */
+.task-dot.ongoing   { background: #1d4ed8; }
+.task-dot.delayed   { background: #ca8a04; }
+.task-dot.completed { background: #047857; }
+.task-dot.dropped   { background: #111827; }
+
+
+.lock-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
