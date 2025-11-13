@@ -1,0 +1,350 @@
+-- init_db.sql
+CREATE DATABASE IF NOT EXISTS `taskmanager`
+  CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+USE `taskmanager`;
+
+-- Users (accounts)
+CREATE TABLE IF NOT EXISTS users (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  name VARCHAR(100) NOT NULL,
+  email VARCHAR(190) NOT NULL UNIQUE,
+  password_hash VARCHAR(255) NOT NULL,
+  privilege_mode TINYINT NOT NULL DEFAULT 0, -- 0=view, 1=owner, 2=teacher, 3=admin
+  banned TINYINT NOT NULL DEFAULT 0, -- 0 = unbanned, 1 = banned
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  reset_token VARCHAR(255) NULL,
+  token_expiration DATETIME NULL,
+  -- miscellaneous
+  banner_color VARCHAR(20) DEFAULT '#FCEADC',
+  banner_image VARCHAR(255) DEFAULT NULL,
+  profile_image VARCHAR(255) DEFAULT NULL
+) ENGINE=InnoDB;
+
+ALTER TABLE users
+ADD COLUMN banner_color VARCHAR(20) DEFAULT '#FCEADC',
+ADD COLUMN banner_image VARCHAR(255) DEFAULT NULL,
+ADD COLUMN profile_image VARCHAR(255) DEFAULT NULL;
+
+select * from users;
+
+UPDATE users 
+SET token_expiration = DATE_ADD(NOW(), INTERVAL 1 HOUR)
+WHERE email = 'alquim_florence@yahoo.com';
+
+SELECT * FROM password_resets;
+SELECT email, reset_token, token_expiration FROM users WHERE email = 'alquim_florence@yahoo.com';
+
+ALTER TABLE users 
+ADD COLUMN reset_token VARCHAR(255) NULL,
+ADD COLUMN token_expiration DATETIME NULL;
+
+select * from users;
+CREATE TABLE chat_messages (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  group_id INT NOT NULL,
+  user_id INT NOT NULL,
+  message TEXT NOT NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (group_id) REFERENCES task_groups(id) ON DELETE CASCADE,
+  FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+) ENGINE=InnoDB;
+
+
+-- Task Groups
+CREATE TABLE IF NOT EXISTS task_groups (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  name VARCHAR(120) NOT NULL,
+  code VARCHAR(16) NOT NULL UNIQUE, -- public join code
+  owner_user_id INT NOT NULL,
+  teacher_user_id INT, -- unused
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT fk_task_groups_owner FOREIGN KEY (owner_user_id) REFERENCES users(id) ON DELETE CASCADE
+) ENGINE=InnoDB;
+
+ALTER TABLE task_groups 
+ADD COLUMN teacher_user_id INT NOT NULL AFTER name;
+
+alter table task_groups
+modify teacher_user_id int after name;
+
+select * from task_groups;
+
+-- Group members (owner is also a member)
+CREATE TABLE IF NOT EXISTS group_members (
+  group_id INT NOT NULL,
+  user_id INT NOT NULL,
+  role ENUM('member','owner','teacher','admin') NOT NULL DEFAULT 'member',
+  joined_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (group_id, user_id),
+  CONSTRAINT fk_gm_group FOREIGN KEY (group_id) REFERENCES task_groups(id) ON DELETE CASCADE,
+  CONSTRAINT fk_gm_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+) ENGINE=InnoDB;
+
+ALTER TABLE group_members 
+MODIFY COLUMN role ENUM('member','owner','teacher','admin') NOT NULL DEFAULT 'member';
+
+select * from group_members;
+
+CREATE TABLE IF NOT EXISTS member_reports (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  reported_user_id INT NOT NULL,
+  reported_by_id INT NOT NULL,
+  group_id INT NOT NULL,
+  reason TEXT,
+  offense_count INT DEFAULT 1,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (reported_user_id) REFERENCES users(id) ON DELETE CASCADE,
+  FOREIGN KEY (reported_by_id) REFERENCES users(id) ON DELETE CASCADE,
+  FOREIGN KEY (group_id) REFERENCES task_groups(id) ON DELETE CASCADE
+);
+
+select * from member_reports;
+
+CREATE TABLE IF NOT EXISTS group_blacklist (
+  group_id INT NOT NULL,
+  user_id INT NOT NULL,
+  blacklisted_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  reason TEXT,
+  PRIMARY KEY (group_id, user_id),
+  FOREIGN KEY (group_id) REFERENCES task_groups(id) ON DELETE CASCADE,
+  FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+);
+select * from group_blacklist;
+
+-- Invite codes (group-scoped)
+CREATE TABLE IF NOT EXISTS invites (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  group_id INT NOT NULL,
+  code VARCHAR(16) NOT NULL UNIQUE,
+  created_by INT NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  expires_at DATETIME NULL,
+  CONSTRAINT fk_inv_group FOREIGN KEY (group_id) REFERENCES task_groups(id) ON DELETE CASCADE,
+  CONSTRAINT fk_inv_creator FOREIGN KEY (created_by) REFERENCES users(id) ON DELETE SET NULL
+) ENGINE=InnoDB;
+
+select * from invites;
+
+-- Tasks (group-scoped)
+-- Original tasks table (no deadline column here)
+CREATE TABLE tasks (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    group_id INT NOT NULL,
+    title VARCHAR(200) NOT NULL,
+    description TEXT NULL,
+    feedback text null,
+    created_by INT NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    _lock TINYINT NOT NULL DEFAULT 0, -- 1 locked, 0 unlock
+    CONSTRAINT fk_task_group FOREIGN KEY (group_id) REFERENCES task_groups(id) ON DELETE CASCADE,
+    CONSTRAINT fk_task_creator FOREIGN KEY (created_by) REFERENCES users(id) ON DELETE CASCADE
+) ENGINE=InnoDB;
+
+ALTER TABLE tasks
+  ADD COLUMN feedback TEXT NULL
+  AFTER description;
+
+
+select * from tasks;
+
+-- New table for deadlines
+CREATE TABLE task_deadline (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    task_id INT NOT NULL,
+    deadline_date DATE NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    _status tinyint not null default 0, -- 0 = unknown, 1 = pending, 2 = ongoing, 3 = Complete , 4 = delay
+    CONSTRAINT fk_task_deadline FOREIGN KEY (task_id) REFERENCES tasks(id) ON DELETE CASCADE
+) ENGINE=InnoDB;
+-- Task assignments: one assignee per task (primary key task_id)
+CREATE TABLE IF NOT EXISTS task_assignments (
+  task_id INT NOT NULL,
+  user_id INT NOT NULL,
+  assigned_by INT NULL,
+  assigned_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (task_id),
+  CONSTRAINT fk_ta_task FOREIGN KEY (task_id) REFERENCES tasks(id) ON DELETE CASCADE,
+  CONSTRAINT fk_ta_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+  CONSTRAINT fk_ta_by FOREIGN KEY (assigned_by) REFERENCES users(id) ON DELETE SET NULL
+) ENGINE=InnoDB;
+
+
+
+CREATE TABLE task_files (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    task_id INT NOT NULL,
+    user_id INT NOT NULL,
+    file_name VARCHAR(255) NOT NULL,
+    file_path VARCHAR(255) NOT NULL,
+    uploaded_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT fk_taskfiles_task FOREIGN KEY (task_id) REFERENCES tasks(id) ON DELETE CASCADE,
+    CONSTRAINT fk_taskfiles_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+) ENGINE=InnoDB;
+
+
+CREATE TABLE notifications (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  user_id INT NOT NULL,          -- who should see the notification
+  group_id INT NOT NULL,
+  type ENUM('task','chat','join') NOT NULL,
+  related_id INT NULL,           -- e.g. task_id or message_id
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  seen TINYINT NOT NULL DEFAULT 0,
+  FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+  FOREIGN KEY (group_id) REFERENCES task_groups(id) ON DELETE CASCADE
+) ENGINE=InnoDB;
+
+select * from notifications;
+drop table task_files;
+
+select * from task_files;
+
+SELECT id, group_id, file_name, file_path FROM task_files;
+
+-- Helpful indexes
+CREATE INDEX idx_task_groups_code ON task_groups(code);
+CREATE INDEX idx_invites_code ON invites(code);
+
+
+
+
+SELECT COUNT(*) as total, 
+       COALESCE(SUM(CASE WHEN d._status = 3 THEN 1 ELSE 0 END), 0) as completed
+FROM task_deadline d
+JOIN tasks t ON d.task_id = t.id
+WHERE t.group_id =16;
+
+select * from task_deadline;
+select * from tasks;
+SELECT id, title, group_id 
+FROM tasks;
+
+
+
+select * from task_deadline;
+
+select * from task_assignments;
+SELECT * FROM chat_messages;
+SHOW COLUMNS FROM tasks;
+
+
+
+SELECT * FROM group_members WHERE group_id = 16;
+
+/*  
+SELECT FUNCTIONS
+*/
+
+SELECT COUNT(*) as total, 
+       COALESCE(SUM(CASE WHEN d._status = 3 THEN 1 ELSE 0 END), 0) as completed
+FROM task_deadline d
+JOIN tasks t ON d.task_id = t.id
+WHERE t.group_id = 10;
+
+SELECT 
+    COUNT(t.id) as total, 
+    COALESCE(SUM(CASE WHEN d._status = 4 THEN 1 ELSE 0 END), 0) as completed
+FROM tasks t
+LEFT JOIN task_deadline d ON d.task_id = t.id
+WHERE t.group_id = 10;
+
+select * from task_deadline;
+
+-- View all users
+SELECT * FROM users;
+
+-- View all groups
+SELECT * FROM task_groups;
+
+-- View all group memberships (which users are in which groups)
+SELECT * FROM group_members;
+
+-- View all tasks
+SELECT * FROM tasks;
+
+-- View all task assignments
+SELECT * FROM task_assignments;
+
+-- View all chat messages
+SELECT * FROM chat_messages;
+
+
+-- List members of each group with their roles
+SELECT g.id AS group_id, g.name AS group_name, u.id AS user_id, u.name AS user_name, gm.role
+FROM group_members gm
+JOIN users u ON u.id = gm.user_id
+JOIN task_groups g ON g.id = gm.group_id
+ORDER BY g.name, u.name;
+
+-- List tasks with assigned members
+SELECT t.id AS task_id, t.title, g.name AS group_name, u.name AS assigned_to
+FROM tasks t
+LEFT JOIN task_assignments ta ON ta.task_id = t.id
+LEFT JOIN users u ON ta.user_id = u.id
+JOIN task_groups g ON g.id = t.group_id
+ORDER BY t.created_at DESC;
+
+-- List chat messages with usernames
+SELECT cm.id, g.name AS group_name, u.name AS user_name, cm.message, cm.created_at
+FROM chat_messages cm
+JOIN users u ON u.id = cm.user_id
+JOIN task_groups g ON g.id = cm.group_id
+ORDER BY cm.created_at DESC;
+
+
+SELECT g.id, g.name, g.code, gm.role
+FROM task_groups g
+JOIN group_members gm ON gm.group_id = g.id
+WHERE gm.user_id = ?;
+
+SHOW CREATE TABLE task_deadline;
+ALTER TABLE tasks ADD COLUMN _lock TINYINT NOT NULL DEFAULT 0
+;
+ALTER TABLE tasks 
+MODIFY _lock TINYINT NOT NULL DEFAULT 1;
+
+ALTER TABLE tasks DROP COLUMN _lock;
+
+SELECT t.id, t.title, t.created_by, t.created_at, t._lock,
+       ta.user_id AS assigned_to, u.name AS assigned_to_name,
+       d.deadline_date, d._status
+FROM tasks t
+LEFT JOIN task_assignments ta ON ta.task_id = t.id
+LEFT JOIN users u ON u.id = ta.user_id
+LEFT JOIN task_deadline d ON d.task_id = t.id
+WHERE t.group_id = ?
+ORDER BY t.created_at DESC;
+
+SELECT id, title, description FROM tasks;
+
+SELECT * from tasks;
+
+SELECT t.id, t.title, d.deadline_date, ta.user_id
+FROM tasks t
+LEFT JOIN task_deadline d ON d.task_id = t.id
+LEFT JOIN task_assignments ta ON ta.task_id = t.id;
+
+SELECT t.id, t.title, t.created_by, t.created_at,
+       ta.user_id AS assigned_to, u.name AS assigned_to_name,
+       d.deadline_date, d._status
+FROM tasks t
+LEFT JOIN task_assignments ta ON ta.task_id = t.id
+LEFT JOIN users u ON u.id = ta.user_id
+LEFT JOIN task_deadline d ON d.task_id = t.id
+WHERE t.group_id = 15
+ORDER BY t.created_at DESC;
+
+SELECT t.id, t.title, t.created_by, t.created_at, t._lock,
+       ta.user_id AS assigned_to, u.name AS assigned_to_name,
+       d.deadline_date, d._status
+FROM tasks t
+LEFT JOIN task_assignments ta ON ta.task_id = t.id
+LEFT JOIN users u ON u.id = ta.user_id
+LEFT JOIN task_deadline d ON d.task_id = t.id
+WHERE t.group_id = 16
+ORDER BY t.created_at DESC;
+
+UPDATE tasks SET _lock = 0 WHERE _lock IS NULL;
+
+select * from files;
+
