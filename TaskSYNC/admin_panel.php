@@ -245,8 +245,8 @@ $privilege_mode = [
     <li><a href="calendar.php">📅Calendar</a></li>
     <li><a href = "profile.php">👤Profile</a></li>
     <li> <a href= "Projects.php">📘Projects</a></li>
-    <li><a href="logout.php" class="logout">➜]Logout</a></li>
     <li><a href="admin_panel.php"class="active">🔧Moderator Panel</a></li>
+    <li><a href="logout.php" class ="logout">➜]Logout</a></li>
     </ul>
 </div>
 

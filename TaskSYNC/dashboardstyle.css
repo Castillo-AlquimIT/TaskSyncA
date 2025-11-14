@@ -1,6 +1,7 @@
+@import url('https://fonts.googleapis.com/css2?family=Archivo:ital,wght@0,100..900;1,100..900&display=swap');
 body {
   margin: 0;
-  font-family: Arial, sans-serif;
+  font-family: 'Archivo', sans-serif;
   background-color: #F5EBD3;
   color: #333;
   display: flex;
@@ -459,12 +460,14 @@ body {
 .status.delayed   { background: #fef9c3; color: #ca8a04; }  /* Yellow */
 .status.completed { background: #d1fae5; color: #047857; }  /* Green */
 .status.dropped   { background: #e5e7eb; color: #111827; }  /* Black */
+.status.pending { background: #e0e0e0; color: #6b7280; }  /* Gray */ 
 
 /* Matching dots */
 .task-dot.ongoing   { background: #1d4ed8; }
 .task-dot.delayed   { background: #ca8a04; }
 .task-dot.completed { background: #047857; }
 .task-dot.dropped   { background: #111827; }
+.task-dot.pending { background: #6b7280; }
 
 /* Header with title + tabs */
 .task-header {
@@ -526,14 +529,14 @@ body {
 .calendar-container {
   background-color: #fff;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-  padding: 90px 125px;
-  width: 420px;
+  padding: 15px 15px;
+  width: auto;
   border: 2px solid #000;
 
   /* perfect center on screen */
   position: absolute;
   top: 50%;
-  left: 50%;
+  left: 58%;
   transform: translate(-50%, -50%);
   text-align: center;
 }
@@ -541,6 +544,7 @@ body {
 .calendar-container .day {
   position: relative;
   cursor: pointer;
+  
 }
 
 .calendar-container .day:hover::after {
@@ -591,22 +595,22 @@ body {
     display: grid;
     grid-template-columns: repeat(7, 1fr);
     text-align: center;
+    border: 1px solid #000;
 }
-
 .weekdays div {
     font-weight: bold;
-    padding: 10px 0;
-    color: #555;
+    padding: 10px 50px;
 }
 
 .days div {
     padding: 10px 0;
     border-radius: 4px;
     cursor: pointer;
+    border: 1px solid #000;
 }
 
 .days div.empty {
-    visibility: hidden;
+    border: 1px solid #000;
 }
 
 .days div.current-day {
