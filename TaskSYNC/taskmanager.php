@@ -837,7 +837,7 @@ $tasks = $stmt->fetchAll(PDO::FETCH_ASSOC);
   --theme-text: #3c2a8e;
 }
 
-.header, .navbar, .progress-box { background-color: var(--theme-base); }
+.header, .navbar { background-color: var(--theme-base); }
 .sidebar { background-color: var(--theme-light); }
 .btn { border-color: var(--theme-base); background: var(--theme-base); }
 .invite-pill, .assigned-pill {
@@ -847,6 +847,11 @@ $tasks = $stmt->fetchAll(PDO::FETCH_ASSOC);
 .member-item.drag-over { background: var(--theme-light); }
 h1, h2, h3, .text-theme { color: var(--theme-text); }
 
+.progress-box {
+  background: transparent;
+  box-shadow: none;    
+  padding:12px 20px;
+}
 
 .logout-btn {
   background: #e74c3c;
@@ -1003,7 +1008,7 @@ h1, h2, h3, .text-theme { color: var(--theme-text); }
   $progress = $total > 0 ? round(($completed / $total) * 100, 2) : 0;
   ?>
   <div style="margin:20px auto; max-width:900px; text-align:center;">
-    <div class="progress-box" style="padding:12px 20px; background:#f9f9f9; border:1px solid #ddd; border-radius:6px;">
+    <div class="progress-box">
       <strong>Progress</strong>
       <div style="margin-top:6px; background:#eee; border-radius:4px; overflow:hidden;">
         <div style="width:<?= $progress ?>%; background:#4caf50; height:14px;"></div>
@@ -1063,7 +1068,7 @@ $canManageTasks = (
     <!-- Members (left) -->
     <div class="left">
       <h3>Members</h3>
-      <div id="membersList" style="cursor:pointer; max-height:300px; overflow-y:auto;">
+      <div id="membersList" style="cursor:pointer; max-height:300px;">
   <?php if (empty($members)): ?>
     <div class="card">No members yet.</div>
   <?php else: foreach ($members as $m): ?>
@@ -1082,7 +1087,7 @@ $canManageTasks = (
 
         <?php if ($isOwner || $currentRole === 'mod' || $currentPrivilege > 1): ?>
           <div class="dropdown-report">
-            <button class="dropdown-btn">⋮</button>
+            <button class="dropdown-btn"> ⋮</button>
             <div class="dropdown-content">
               <a href="view_profile.php?user_id=<?= (int)$m['id'] ?>" class="profile">
                 <button class="reportAction">View Profile</button>
