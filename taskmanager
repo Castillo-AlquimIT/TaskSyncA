@@ -9,7 +9,7 @@ CREATE TABLE IF NOT EXISTS users (
   name VARCHAR(100) NOT NULL,
   email VARCHAR(190) NOT NULL UNIQUE,
   password_hash VARCHAR(255) NOT NULL,
-  privilege_mode TINYINT NOT NULL DEFAULT 0, -- 0=view, 1=owner, 2=teacher, 3=admin
+  privilege_mode TINYINT NOT NULL DEFAULT 0, -- 0=view, 1=owner, 2=teacher, 3=mod
   banned TINYINT NOT NULL DEFAULT 0, -- 0 = unbanned, 1 = banned
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   reset_token VARCHAR(255) NULL,
@@ -73,7 +73,7 @@ select * from task_groups;
 CREATE TABLE IF NOT EXISTS group_members (
   group_id INT NOT NULL,
   user_id INT NOT NULL,
-  role ENUM('member','owner','teacher','admin') NOT NULL DEFAULT 'member',
+  role ENUM('member','owner','teacher','mod') NOT NULL DEFAULT 'member',
   joined_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (group_id, user_id),
   CONSTRAINT fk_gm_group FOREIGN KEY (group_id) REFERENCES task_groups(id) ON DELETE CASCADE,
@@ -81,7 +81,7 @@ CREATE TABLE IF NOT EXISTS group_members (
 ) ENGINE=InnoDB;
 
 ALTER TABLE group_members 
-MODIFY COLUMN role ENUM('member','owner','teacher','admin') NOT NULL DEFAULT 'member';
+MODIFY COLUMN role ENUM('member','owner','teacher','mod') NOT NULL DEFAULT 'member';
 
 select * from group_members;
 
