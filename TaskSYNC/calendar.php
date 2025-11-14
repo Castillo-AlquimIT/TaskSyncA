@@ -247,7 +247,9 @@ if (!empty($groupIds)) {
 #confirmJoinBtn:hover {
   background-color: #059669;
 }
-
+h1 {
+    padding: 10px 30px;
+}
 /* 🔹 Animation */
 @keyframes fadeIn {
   from { transform: scale(0.9); opacity: 0; }
@@ -298,16 +300,16 @@ $deadlines = $stmt_deadlines->fetchAll(PDO::FETCH_ASSOC);
     <li><a href="calendar.php" class="active">📅 Calendar</a></li>
     <li><a href="profile.php">👤 Profile</a></li>
     <li><a href="Projects.php">📘 Projects</a></li>
-    <li><a href="logout.php" class="logout">➜ Logout</a></li>
     <?php if ($privilege === 3): ?>
        <li><a href="admin_panel.php">🔧Moderator Panel</a></li>
     <?php endif; ?>
-  </ul>
+    <li><a href="logout.php" class ="logout">➜]Logout</a></li>
+    </ul>
 </div>
 
+<h1>Calendar</h1>
 <div class="main">
 <div class="calendar-container">
-    <h1>Calendar</h1>  
     <div class="header">
         <button id="prevMonth">&lt;</button>
         <h2 id="monthYear"></h2>
@@ -321,8 +323,9 @@ $deadlines = $stmt_deadlines->fetchAll(PDO::FETCH_ASSOC);
         <div>Thu</div>
         <div>Fri</div>
         <div>Sat</div>
-    </div>
+    </div><br><br><br>
     <div class="days" id="calendarDays"></div>
+    <br> </br>
 </div>
 </div>
 

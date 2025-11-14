@@ -405,10 +405,10 @@ foreach ($groupProgress as $gp) {
     <li><a href="calendar.php">📅Calendar</a></li>
     <li><a href = "profile.php">👤Profile</a></li>
     <li><a href= "Projects.php" class="active" >📕Projects</li></a>
-    <li><a href="logout.php" class="logout">➜]Logout</a></li>
     <?php if ($privilege === 3): ?>
        <li><a href="admin_panel.php">🔧Moderator Panel</a></li>
       <?php endif; ?>
+    <li><a href="logout.php" class ="logout">➜]Logout</a></li>
     </ul>
 
 </div>

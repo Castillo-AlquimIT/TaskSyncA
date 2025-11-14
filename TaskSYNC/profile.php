@@ -647,10 +647,10 @@ if (!empty($groupIds)) {
     <li><a href="calendar.php">📅Calendar</a></li>
     <li><a href = "profile.php" class="active" >👤Profile</a></li>
     <li> <a href= "Projects.php">📘Projects</a></li>
-    <li><a href="logout.php" class="logout">➜]Logout</a></li>
     <?php if ($privilege === 3): ?>
        <li><a href="admin_panel.php">🔧Moderator Panel</a></li>
       <?php endif; ?>
+    <li><a href="logout.php" class ="logout">➜]Logout</a></li>
     </ul>
 </div>
 <div class="main">

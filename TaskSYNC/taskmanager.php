@@ -1096,10 +1096,8 @@ $canManageTasks = (
       </div>
     </div>
   <?php endforeach; endif; ?>
-</div>
-
-      
-      <div style="margin-top:10px; color:#6b7280">Members are blank until others join using the invite code.</div>
+</div> 
+    <div style="margin-top:10px; color:#6b7280">Members are blank until others join using the invite code.</div>
           <div class="card" style="margin-top:20px;">
         <h3>Group Code</h3>
         <div style="display: flex; align-items: center; gap: 8px;">
