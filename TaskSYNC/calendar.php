@@ -38,7 +38,7 @@ $privilegeMap = [
     0 => 'member',
     1 => 'owner',
     2 => 'teacher',
-    3 => 'admin'
+    3 => 'mod'
 ];
 
 // Derive role from privilege
@@ -300,7 +300,7 @@ $deadlines = $stmt_deadlines->fetchAll(PDO::FETCH_ASSOC);
     <li><a href="Projects.php">📘 Projects</a></li>
     <li><a href="logout.php" class="logout">➜ Logout</a></li>
     <?php if ($privilege === 3): ?>
-       <li><a href="admin_panel.php">🔧 Admin Panel</a></li>
+       <li><a href="admin_panel.php">🔧Moderator Panel</a></li>
     <?php endif; ?>
   </ul>
 </div>

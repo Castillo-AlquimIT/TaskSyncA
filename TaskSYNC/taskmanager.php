@@ -114,7 +114,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && strpos($content_type, 'application/
         case 'assign_task_by_name':
             $role    = strtolower($member['role'] ?? 'member');
             $isOwner = ($group['owner_user_id'] == $user_id);
-            if (!$isOwner && !in_array($role, ['teacher','admin'])) {
+            if (!$isOwner && !in_array($role, ['teacher','mod'])) {
                 http_response_code(403);
                 echo json_encode(['error'=>'Permission denied']);
                 exit;
@@ -159,7 +159,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && strpos($content_type, 'application/
             // check membership & role
             $role = strtolower($member['role'] ?? 'member');
             $isOwner = ($group['owner_user_id'] == $user_id);
-            if (!$isOwner && !in_array($role, ['teacher','admin'])) {
+            if (!$isOwner && !in_array($role, ['teacher','mod'])) {
                 http_response_code(403);
                 echo json_encode(['error' => 'Permission denied']);
                 exit;
@@ -175,7 +175,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && strpos($content_type, 'application/
         case 'assign_task':
             $role    = strtolower($member['role'] ?? 'member');
             $isOwner = ($group['owner_user_id'] == $user_id);
-            if (!$isOwner && !in_array($role, ['teacher','admin'])) {
+            if (!$isOwner && !in_array($role, ['teacher','mod'])) {
                 http_response_code(403);
                 echo json_encode(['error'=>'Permission denied']);
                 exit;
@@ -370,8 +370,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && strpos($content_type, 'application/
     // owner check
     $isOwner = ($group['owner_user_id'] == $actorUserId);
 
-    // authorize: only owner OR teacher/admin (role) OR any user with privilege >=1 (owner/teacher/admin) can moderate
-    $canModerate = $isOwner || in_array($actorRole, ['teacher', 'admin']) || in_array($actorPrivilege, [1,2,3]);
+    // authorize: only owner OR teacher/mod (role) OR any user with privilege >=1 (owner/teacher/mod) can moderate
+    $canModerate = $isOwner || in_array($actorRole, ['teacher', 'mod']) || in_array($actorPrivilege, [1,2,3]);
     if (!$canModerate && in_array($actionType, ['kick','blacklist'])) {
         http_response_code(403);
         echo json_encode(['error' => 'Unauthorized']);
@@ -401,7 +401,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && strpos($content_type, 'application/
             echo json_encode(['error' => 'Cannot act on equal or higher privilege user.']);
             exit;
         }
-        // You could also include role-based tie breaker e.g., teacher vs admin etc.
+        // You could also include role-based tie breaker e.g., teacher vs mod etc.
     }
 
     // --- Insert or update report record
@@ -441,7 +441,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && strpos($content_type, 'application/
             break;
 
         case 'alert':
-            // Optional: log or send notification to group admins
+            // Optional: log or send notification to group mods
             break;
 
         case 'contact':
@@ -745,6 +745,12 @@ $tasks = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
 .dropdown {
   position: relative;
+  display: inline-block; /* keeps button + dropdown inline */
+  vertical-align: middle;
+}
+
+.dropdown-report {
+  position: relative;
 }
 
 
@@ -763,36 +769,43 @@ $tasks = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
 
 .dropdown-btn {
-  background: none;
-  border: none;
-  cursor: pointer;
-  font-size: 18px;
+  background: #f9f9f9;
+  border: 1px solid #ccc;
+  padding: 6px 10px;
 }
+
 .dropdown-content {
-  position: absolute;   /* positions relative to .dropdown (which must be relative) */
-  right: 0;
-  top: 100%;
+  display: none;
+  position: absolute;
+  left: 100%;        /* show beside the button instead of below */
+  top: 0;            /* align top edges */
   background: #fff;
   border: 1px solid #ccc;
-  z-index: 10;          /* keep above other content */
-  max-height: 200px;    /* optional: scroll inside dropdown itself */
+  z-index: 10;
+  min-width: 120px;
+  max-height: 200px;
   overflow-y: auto;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
 }
+
+
 .dropdown-content.show {
   display: block;
   
 }
+
 .dropdown-content button {
   display: block;
   width: 100%;
   text-align: left;
-  padding: 4px 8px;
+  padding: 4px 2px;
   border: none;
   background: none;
   cursor: pointer;
 }
 .dropdown-content button:hover {
-  background: #f0f0f0;
+  background: #000000ff;
+  color: white ;
 }
 
 
@@ -881,21 +894,19 @@ h1, h2, h3, .text-theme { color: var(--theme-text); }
       $deadlines = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
       $statusLabels = [
-        0 => 'Unknown',
-        1 => 'Pending',
+        0 => 'Not Started',
+        1 => 'Not Started',
         2 => 'Ongoing',
         3 => 'Complete',
         4 => 'Delayed',
-        5 => 'Dropped'
       ];
       $statusLabels2 = $statusLabels;
 
       $statusLabels2 = [
-        1 => 'Pending',
+        1 => 'Not Started',
         2 => 'Ongoing',
         3 => 'Complete',
         4 => 'Delayed',
-        5 => 'Dropped'
       ];
       ?>
 
@@ -906,8 +917,8 @@ h1, h2, h3, .text-theme { color: var(--theme-text); }
           <?php foreach ($deadlines as $d): ?>
             <?php  
               $d_status = isset($d['task_status']) && $d['task_status'] !== null 
-                ? ($statusLabels[(int)$d['task_status']] ?? 'Unknown') 
-                : 'Unknown';
+                ? ($statusLabels[(int)$d['task_status']] ?? 'Not Started') 
+                : 'Not Started';
             ?>
             <li style="margin-bottom:10px;">
               <strong><?= htmlspecialchars($d['title']) ?></strong><br>
@@ -1015,7 +1026,7 @@ $membership = $stmt->fetch(PDO::FETCH_ASSOC);
 if ((int)$group['owner_user_id'] === $user_id) {
     $currentRole = 'owner';
 } elseif ($membership) {
-    $currentRole = strtolower($membership['role']); // 'member', 'teacher', 'admin'
+    $currentRole = strtolower($membership['role']); // 'member', 'teacher', 'mod'
 } else {
     $currentRole = 'viewer'; // not a member
 }
@@ -1026,7 +1037,7 @@ $roleLabels = [
     'member'  => 0,
     'owner'   => 1,
     'teacher' => 2,
-    'admin'   => 3
+    'mod'   => 3
 ];
 $currentRoleNumeric = $roleLabels[$currentRole] ?? 0;
 
@@ -1040,7 +1051,7 @@ $role    = $_SESSION['privilege'] ?? 0;
 $canManageTasks = ($role >= 1);
 
 $canManageTasks = (
-    $currentRoleNumeric >= 1 // group owner/teacher/admin
+    $currentRoleNumeric >= 1 // group owner/teacher/mod
 );
 
 ?>
@@ -1069,15 +1080,19 @@ $canManageTasks = (
       <div class="member-actions" style="display:flex; align-items:center; gap:8px; flex-shrink:0;">
         <div class="pill"><?= htmlspecialchars($m['role']) ?></div>
 
-        <?php if ($isOwner || $currentRole === 'admin' || $currentPrivilege > 1): ?>
-          <div class="dropdown">
+        <?php if ($isOwner || $currentRole === 'mod' || $currentPrivilege > 1): ?>
+          <div class="dropdown-report">
             <button class="dropdown-btn">⋮</button>
             <div class="dropdown-content">
+              <a href="view_profile.php?user_id=<?= (int)$m['id'] ?>" class="profile">
+                <button class="reportAction">View Profile</button>
+              </a>
               <button class="reportAction" data-action="kick">Kick Member</button>
               <button class="reportAction" data-action="blacklist">Blacklist User</button>
             </div>
           </div>
         <?php endif; ?>
+
       </div>
     </div>
   <?php endforeach; endif; ?>
@@ -1189,20 +1204,34 @@ $canManageTasks = (
 
         <p><strong>Feedback:</strong></p>
         <textarea id="modalFeedback" style="width:100%; height:60px;"
-          <?php if (!($canManageTasks || in_array($canManageTasks, ['admin','teacher']))) : ?>
+          <?php if (!($canManageTasks || in_array($canManageTasks, ['mod','teacher']))) : ?>
             disabled style="opacity:0.5; cursor:not-allowed;"
           <?php endif; ?>
         ></textarea>
 
-        <select id="modalStatus"
-          <?php if (!($canManageTasks || in_array($canManageTasks, ['admin','teacher']))) : ?>
-            disabled style="opacity:0.5; cursor:not-allowed;"
-          <?php endif; ?>
-        >
-          <?php foreach ($statusLabels2 as $key => $label): ?>
-            <option value="<?= $key ?>"><?= htmlspecialchars($label) ?></option>
-          <?php endforeach; ?>
-        </select>
+          <div class="dropdown">
+            <button type="button" class="dropdown-btn" id="statusDropdownBtn">▼ Status</button>
+            <div class="dropdown-content" id="statusDropdownContent">
+              <?php foreach ($statusLabels2 as $key => $label): ?>
+                <button 
+                  data-value="<?= $key ?>" 
+                  <?php if (!($canManageTasks || in_array($canManageTasks, ['mod','teacher']))) : ?>
+                    disabled style="opacity:0.5; cursor:not-allowed;"
+                  <?php endif; ?>
+                >
+                  <?= htmlspecialchars($label) ?? 'Not Started' ?>
+                </button>
+              <?php endforeach; ?>
+            </div>
+
+  <!-- Keep your original select (hidden but still functional for backend form submission) -->
+  <select id="modalStatus" name="modalStatus" style="display:none;">
+    <?php foreach ($statusLabels2 as $key => $label): ?>
+      <option value="<?= $key ?>"><?= htmlspecialchars($label) ?></option>
+    <?php endforeach; ?>
+  </select>
+</div>
+
       </p>
 
 
@@ -1234,7 +1263,7 @@ $canManageTasks = (
 const GROUP_ID = <?= json_encode($group_id) ?>;
 const WORKER_PATH = 'taskmanager.php?group_id=' + GROUP_ID;
 const CURRENT_PRIVILEGE = <?= json_encode((int)($privilege ?? 0)) ?>; // 0,1,2,3
-const CURRENT_ROLE = <?= json_encode(strtolower($member['role'] ?? 'member')) ?>; // "owner","admin","member"
+const CURRENT_ROLE = <?= json_encode(strtolower($member['role'] ?? 'member')) ?>; // "owner","mod","member"
 const IS_OWNER = <?= json_encode($group['owner_user_id'] == $user_id) ?>; // true or false
 /* ---------------------------
    API helper
@@ -1333,6 +1362,35 @@ document.addEventListener("DOMContentLoaded", () => {
   fetchGroupUsers();
 });
 
+// Drop down logic for status selection
+document.addEventListener('DOMContentLoaded', () => {
+  const btn = document.getElementById('statusDropdownBtn');
+  const dropdown = document.getElementById('statusDropdownContent');
+  const select = document.getElementById('modalStatus');
+
+  // Toggle dropdown visibility
+  btn.addEventListener('click', () => {
+    dropdown.classList.toggle('show');
+  });
+
+  // Set selected option when clicking a button
+  dropdown.querySelectorAll('button').forEach(item => {
+    item.addEventListener('click', () => {
+      if (item.disabled) return;
+      const value = item.getAttribute('data-value');
+      const text = item.textContent;
+
+      btn.textContent = text;
+      select.value = value;
+      dropdown.classList.remove('show');
+    });
+  });
+
+  // Close dropdown when clicking outside
+  document.addEventListener('click', (e) => {
+    if (!e.target.closest('.dropdown')) dropdown.classList.remove('show');
+  });
+});
 /* ---------------------------
    Task Modal (open + save)
 ---------------------------- */
@@ -1860,15 +1918,17 @@ async function refreshMembers() {
     `;
 
     // conditionally add dropdown
-    if (IS_OWNER || CURRENT_ROLE === 'admin' || CURRENT_PRIVILEGE > 1) {
+    if (IS_OWNER || CURRENT_ROLE === 'mod' || CURRENT_PRIVILEGE > 1) {
       html += `
-        <div class="dropdown">
+        <div class="dropdown-report">
           <button class="dropdown-btn">⋮</button>
           <div class="dropdown-content">
+            <a href="view_profile.php?user_id=<?= (int)$m['id'] ?>" class="profile">
+              <button class="reportAction">View Profile</button>
+            </a>
             <button class="reportAction" data-action="kick">Kick Member</button>
             <button class="reportAction" data-action="blacklist">Blacklist User</button>
           </div>
-        </div>
       `;
     }
 
@@ -2347,6 +2407,7 @@ async function loadGroupUsers() {
     });
   }
 }
+
 </script>
 </body>
 </html>

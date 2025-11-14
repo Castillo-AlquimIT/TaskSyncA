@@ -9,7 +9,7 @@ if (empty($_SESSION['user_id'])) {
 
 $user_id   = (int)$_SESSION['user_id'];
 $user_name = $_SESSION['user_name'] ?? 'Unknown';
-$privilege = (int)($_SESSION['privilege_mode'] ?? 0); // 0=member, 1=owner, 2=teacher, 3=admin
+$privilege = (int)($_SESSION['privilege_mode'] ?? 0); // 0=member, 1=owner, 2=teacher, 3=mod
 
 // ✅ Fetch user profile data FIRST — before using $user
 $stmt = $pdo->prepare("
@@ -145,7 +145,7 @@ $privilegeMap = [
     0 => 'member',
     1 => 'owner',
     2 => 'teacher',
-    3 => 'admin'
+    3 => 'mod'
 ];
 $role = $privilegeMap[$privilege] ?? 'view';
 $currentRole = $role;
@@ -589,7 +589,7 @@ SELECT
     SUM(CASE WHEN td._status = 4 THEN 1 ELSE 0 END) AS 'delayed',
     SUM(CASE WHEN td._status = 3 THEN 1 ELSE 0 END) AS completed,
     SUM(CASE WHEN td._status = 2 THEN 1 ELSE 0 END) AS ongoing,
-    SUM(CASE WHEN td._status = 1 THEN 1 ELSE 0 END) AS pending
+    SUM(CASE WHEN td._status = 1 THEN 1 ELSE 0 END) AS 'Not Started'
 FROM task_groups g
 JOIN group_members gm ON gm.group_id = g.id
 LEFT JOIN (
@@ -615,7 +615,7 @@ $total = (int)$stats['total'];
 $completed = (int)$stats['completed'];
 $delayed = (int)$stats['delayed'];
 $ongoing = (int)$stats['ongoing'];
-$pending = (int)$stats['pending'];
+$pending = (int)$stats['Not Started'];
 $dropped = (int)$stats['dropped'];
 $percent = $total > 0 ? round(($completed / $total) * 100) : 0;
 
@@ -649,7 +649,7 @@ if (!empty($groupIds)) {
     <li> <a href= "Projects.php">📘Projects</a></li>
     <li><a href="logout.php" class="logout">➜]Logout</a></li>
     <?php if ($privilege === 3): ?>
-       <li><a href="admin_panel.php">🔧Admin Panel</a></li>
+       <li><a href="admin_panel.php">🔧Moderator Panel</a></li>
       <?php endif; ?>
     </ul>
 </div>

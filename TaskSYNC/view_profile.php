@@ -468,7 +468,7 @@ if (!empty($groupIds)) {
     <li><a href="Projects.php">📘Projects</a></li>
     <li><a href="logout.php">➜ Logout</a></li>
     <?php if ($privilege === 3): ?>
-       <li><a href="admin_panel.php">🔧Admin Panel</a></li>
+       <li><a href="admin_panel.php">🔧Moderator Panel</a></li>
     <?php endif; ?>
   </ul>
 </div>
