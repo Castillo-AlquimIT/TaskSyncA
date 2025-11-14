@@ -64,7 +64,7 @@ $privilegeMap = [
     0 => 'member',
     1 => 'owner',
     2 => 'teacher',
-    3 => 'admin'
+    3 => 'mod'
 ];
 
 // Derive role from privilege
@@ -234,7 +234,7 @@ SELECT
     SUM(CASE WHEN td._status = 4 THEN 1 ELSE 0 END) AS 'delayed',
     SUM(CASE WHEN td._status = 3 THEN 1 ELSE 0 END) AS completed,
     SUM(CASE WHEN td._status = 2 THEN 1 ELSE 0 END) AS ongoing,
-    SUM(CASE WHEN td._status = 1 THEN 1 ELSE 0 END) AS pending
+    SUM(CASE WHEN td._status = 1 THEN 1 ELSE 0 END) AS 'Not Started'
 FROM task_groups g
 JOIN group_members gm ON gm.group_id = g.id
 LEFT JOIN tasks t ON t.group_id = g.id
@@ -250,7 +250,7 @@ $total = (int)$stats['total'];
 $completed = (int)$stats['completed'];
 $delayed = (int)$stats['delayed'];
 $ongoing = (int)$stats['ongoing'];
-$pending = (int)$stats['pending'];
+$pending = (int)$stats['Not Started'];
 $dropped = (int)$stats['dropped'];
 $percent = $total > 0 ? round(($completed / $total) * 100) : 0;
 
@@ -306,7 +306,7 @@ $groupNotifs = $stmt->fetchAll(PDO::FETCH_ASSOC);
     <span style="color:#047857;"><strong><?= $completed ?></strong> Completed</span>
     <span style="color:#ca8a04;"><strong><?= $delayed ?></strong> Delayed</span>
     <span style="color:#1d4ed8;"><strong><?= $ongoing ?></strong> Ongoing</span>
-    <span style="color:#6b7280;"><strong><?= $pending ?></strong> Pending</span>
+    <span style="color:#6b7280;"><strong><?= $pending ?></strong> Not Started</span>
   </div>
 </div>
 
@@ -331,7 +331,7 @@ $groupNotifs = $stmt->fetchAll(PDO::FETCH_ASSOC);
       if ($t['_status'] == 3) { $statusClass = "completed"; $statusText = "Completed"; }
       elseif ($t['_status'] == 4) { $statusClass = "delayed"; $statusText = "Delayed"; }
       elseif ($t['_status'] == 2) { $statusClass = "ongoing"; $statusText = "Ongoing"; }
-      elseif ($t['_status'] == 1) { $statusClass = "pending"; $statusText = "Pending"; }
+      elseif ($t['_status'] == 1) { $statusClass = "pending"; $statusText = "Not Started"; }
       elseif ($t['_status'] == 5) { $statusClass = "dropped"; $statusText = "Dropped"; }
     ?>
     

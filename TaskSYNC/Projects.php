@@ -62,7 +62,7 @@ $privilegeMap = [
     0 => 'member',
     1 => 'owner',
     2 => 'teacher',
-    3 => 'admin'
+    3 => 'mod'
 ];
 
 // Derive role from privilege
@@ -146,7 +146,7 @@ $roleLabels = [
     0 => 'Member',
     1 => 'Owner',
     2 => 'Teacher',
-    3 => 'Admin'
+    3 => 'Moderator'
 ];
 
 
@@ -407,7 +407,7 @@ foreach ($groupProgress as $gp) {
     <li><a href= "Projects.php" class="active" >📕Projects</li></a>
     <li><a href="logout.php" class="logout">➜]Logout</a></li>
     <?php if ($privilege === 3): ?>
-       <li><a href="admin_panel.php">🔧Admin Panel</a></li>
+       <li><a href="admin_panel.php">🔧Moderator Panel</a></li>
       <?php endif; ?>
     </ul>
 

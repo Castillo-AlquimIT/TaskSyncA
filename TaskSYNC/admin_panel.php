@@ -10,7 +10,7 @@ $dbUser = 'your_username';
 $dbPass = 'your_password';
 $dbName = 'your_database_name';
 
-// Only allow admins
+// Only allow Moderators (privilege_mode = 3)
 if (!isset($_SESSION['user_id'])) {
     header("Location: login.php");
     exit;
@@ -213,7 +213,7 @@ $privilege_mode = [
     'member'  => 0,
     'owner'   => 1,
     'teacher' => 2,
-    'admin'   => 3
+    'mod'   => 3
 ];
 
 ?>
@@ -246,7 +246,7 @@ $privilege_mode = [
     <li><a href = "profile.php">👤Profile</a></li>
     <li> <a href= "Projects.php">📘Projects</a></li>
     <li><a href="logout.php" class="logout">➜]Logout</a></li>
-    <li><a href="admin_panel.php"class="active">🔧Admin Panel</a></li>
+    <li><a href="admin_panel.php"class="active">🔧Moderator Panel</a></li>
     </ul>
 </div>
 
