@@ -1699,16 +1699,31 @@ function showUserSuggestions(inputEl) {
 
 async function saveTaskModal() {
   const taskId = document.getElementById("taskModal").dataset.taskId;
+  const deadlineValue = document.getElementById("modalDeadline").value;
+
   const payload = {
     action: "update_status",
     task_id: taskId,
     _status: document.getElementById("modalStatus").value,
-    deadline: document.getElementById("modalDeadline").value,
+    deadline: deadlineValue,
     description: document.getElementById("modalDescription").value,
     feedback: document.getElementById("modalFeedback").value
   };
 
   try {
+    // ✅ Deadline validation
+    if (deadlineValue) {
+      const deadlineDate = new Date(deadlineValue);
+      const today = new Date();
+      today.setHours(0, 0, 0, 0); // normalize to midnight
+      deadlineDate.setHours(0, 0, 0, 0);
+
+      if (deadlineDate < today) {
+        alert("❌ Error: The deadline you entered has already passed.");
+        return; // stop execution
+      }
+    }
+
     // 1) Save description/deadline/status/feedback
     const res = await fetch("taskmanager.php?group_id=" + GROUP_ID, {
       method: "POST",
@@ -1765,7 +1780,6 @@ async function saveTaskModal() {
       }
     }
 
-
     // ✅ Success
     alert("Save successful");
 
@@ -1779,7 +1793,7 @@ async function saveTaskModal() {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         task_id: taskId,
-        deadline_date: document.getElementById("modalDeadline").value // YYYY-MM-DD if <input type="date">
+        deadline_date: deadlineValue // YYYY-MM-DD if <input type="date">
       })
     });
 
@@ -1808,7 +1822,7 @@ async function saveTaskModal() {
       })
     }).then(r => r.json()).then(res => {
       if (!res.success) {
-        alert("Description save failed: " + (res.error || "Unknown error"));
+        alert("Feedback save failed: " + (res.error || "Unknown error"));
       }
     });
 
@@ -1816,9 +1830,8 @@ async function saveTaskModal() {
     // ❌ Show *why* it failed
     alert("Save failed: " + err.message);
   }
-    }
-  } 
 }
+
 
 
 // ✅ only one set of listeners
@@ -2409,3 +2422,4 @@ async function loadGroupUsers() {
 </script>
 </body>
 </html>
+
