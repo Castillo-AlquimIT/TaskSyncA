@@ -5,7 +5,7 @@ if (empty($_SESSION['user_id'])) { header('Location: index.php'); exit; }
 
 $user_id   = (int)$_SESSION['user_id'];
 $user_name = $_SESSION['user_name'] ?? 'Unknown';
-$privilege = (int)($_SESSION['privilege_mode'] ?? 0); // 0=member, 1=owner, 2=teacher, 3=admin
+$privilege = (int)($_SESSION['privilege_mode'] ?? 0); // 0=member, 1=owner, 2=teacher, 3=moderator
 
 
 
@@ -230,7 +230,7 @@ $user_id = $_SESSION['user_id'];
 
 // Fetch all groups the user is in
 $stmt = $pdo->prepare("
-    SELECT g.*, gm.role,
+    SELECT g.id, g.name, g.code, g.owner_user_id, gm.role,
            COUNT(t.id) AS total_tasks,
            SUM(CASE WHEN d._status = 3 THEN 1 ELSE 0 END) AS completed_tasks
     FROM task_groups g
@@ -238,7 +238,7 @@ $stmt = $pdo->prepare("
     LEFT JOIN tasks t ON g.id = t.group_id
     LEFT JOIN task_deadline d ON d.task_id = t.id
     WHERE gm.user_id = ?
-    GROUP BY g.id
+    GROUP BY g.id, g.name, g.code, g.owner_user_id, gm.role
 ");
 $stmt->execute([$user_id]);
 $groups = $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -256,29 +256,33 @@ $joinedGroups = array_filter($groups, fn($g) => (int)$g['owner_user_id'] !== $us
   <link rel="stylesheet" href="dashboardstyle.css">
   <style>
 .add-project-card {
-  background-color: #ffffffff;
+  background-color: #fff;
   text-align: center;
   padding: 40px 0;
-  border-radius: 10px;
   cursor: pointer;
   transition: transform 0.2s ease, background 0.3s ease;
   width: 280px;
-  height: 220px; /* ✅ fixed height */
+  min-width: 280px;
+  max-width: 280px;   /* ← FIXES WIDTH PERMANENTLY */
+  height: 190px; 
   box-sizing: border-box;
   display: flex;
   flex-direction: column;
   justify-content: center;
   align-items: center;
 }
+
 .add-project-card:hover {
   background-color: #d7bdfc;
   transform: scale(1.05);
 }
+
 .add-project-card .plus {
   font-size: 32px;
   display: block;
   margin-top: 10px;
 }
+
 
 /* Popup Modal Base */
 .modal {
@@ -295,10 +299,9 @@ $joinedGroups = array_filter($groups, fn($g) => (int)$g['owner_user_id'] !== $us
 
 /* Popup Box */
 .modal-content {
-  background: white;
-  border-radius: 10px;
+  background: #d9b4e7ff;
   padding: 20px;
-  width: 320px;
+  width: 400px;
   box-shadow: 0 5px 15px rgba(0,0,0,0.2);
   animation: fadeIn 0.3s ease;
 }
@@ -310,7 +313,6 @@ $joinedGroups = array_filter($groups, fn($g) => (int)$g['owner_user_id'] !== $us
   align-items: center;
   background: #f0d9ff;
   padding: 10px;
-  border-radius: 8px;
 }
 
 .close-btn {
@@ -415,8 +417,6 @@ foreach ($groupProgress as $gp) {
 
 <div class="main">
   <h1>Hello! <?=htmlspecialchars($user_name)?></h1>
-  
-
   <!-- Group cards -->
 <div class="group-list">
   <!-- Popup Modal -->
@@ -444,6 +444,49 @@ foreach ($groupProgress as $gp) {
 </div>
 
 <!-- ===== Recently Joined Section ===== -->
+
+
+<!-- Owned Projects Section -->
+<div class="owned-section">
+  <h2>Your Owned Projects</h2>
+  <div class="scroll-wrapper">
+    <button class="scroll-btn left owned-left">&lt;</button>
+        
+    <div class="group-list owned-list">
+      <div class="add-project-card" id="openAddProject">
+    <p>Add Project</p>
+    <span class="plus">+</span>
+  </div>
+      <?php
+      $owned = array_filter($groups, fn($g) => (int)$g['owner_user_id'] === (int)$user_id);
+      ?>
+      <?php if (empty($owned)): ?>
+        <div class="card">No owned projects yet.</div>
+      <?php else: foreach ($owned as $g): ?>
+        <?php
+          $total = (int)$g['total_tasks'];
+          $done = (int)$g['completed_tasks'];
+          $progress = $total > 0 ? round(($done / $total) * 100) : 0;
+        ?>
+        <div class="group-card card">
+          <h3><?= htmlspecialchars($g['name']) ?></h3>
+          <p>Code: <strong><?= htmlspecialchars($g['code']) ?></strong></p>
+          <p>Role: Owner</p>
+          <div class="group-progress">
+            <div class="progress-bar">
+              <div class="progress-fill" style="width: <?= $progress ?>%"></div>
+            </div>
+            <p class="progress-text"><?= $progress ?>% Completed</p>
+          </div>
+          <a class="btn small" href="taskmanager.php?group_id=<?= (int)$g['id'] ?>">Manage</a>
+        </div>
+      <?php endforeach; endif; ?>
+    </div>
+
+    <button class="scroll-btn right owned-right">&gt;</button>
+  </div>
+</div>
+
 <!-- Joined Groups Section -->
 <div class="owned-section">
   <h2>Joined Groups</h2>
@@ -451,10 +494,6 @@ foreach ($groupProgress as $gp) {
     <button class="scroll-btn left joined-left">&lt;</button>
 
     <div class="group-list joined-list">
-        <div class="add-project-card" id="openAddProject">
-    <p>Add Project</p>
-    <span class="plus">+</span>
-  </div>
         <!-- Add Project Card -->
       <?php
       $joined = array_filter($groups, fn($g) => (int)$g['owner_user_id'] !== (int)$user_id);
@@ -493,49 +532,10 @@ foreach ($groupProgress as $gp) {
     <button class="scroll-btn right joined-right">&gt;</button>
   </div>
 </div>
-
-<!-- Owned Projects Section -->
-<div class="owned-section">
-  <h2>Your Owned Projects</h2>
-  <div class="scroll-wrapper">
-    <button class="scroll-btn left owned-left">&lt;</button>
-
-    <div class="group-list owned-list">
-      <?php
-      $owned = array_filter($groups, fn($g) => (int)$g['owner_user_id'] === (int)$user_id);
-      ?>
-      <?php if (empty($owned)): ?>
-        <div class="card">No owned projects yet.</div>
-      <?php else: foreach ($owned as $g): ?>
-        <?php
-          $total = (int)$g['total_tasks'];
-          $done = (int)$g['completed_tasks'];
-          $progress = $total > 0 ? round(($done / $total) * 100) : 0;
-        ?>
-        <div class="group-card card">
-          <h3><?= htmlspecialchars($g['name']) ?></h3>
-          <p>Code: <strong><?= htmlspecialchars($g['code']) ?></strong></p>
-          <p>Role: Owner</p>
-          <div class="group-progress">
-            <div class="progress-bar">
-              <div class="progress-fill" style="width: <?= $progress ?>%"></div>
-            </div>
-            <p class="progress-text"><?= $progress ?>% Completed</p>
-          </div>
-          <a class="btn small" href="taskmanager.php?group_id=<?= (int)$g['id'] ?>">Manage</a>
-        </div>
-      <?php endforeach; endif; ?>
-    </div>
-
-    <button class="scroll-btn right owned-right">&gt;</button>
-  </div>
-</div>
-
-
 </body>
 <script>
 
-const cardWidth = 280 + 20; // card width + gap
+const cardWidth = 285 + 20; // card width + gap
 
 document.querySelectorAll('.scroll-btn.left').forEach(btn => {
   btn.addEventListener('click', () => {
